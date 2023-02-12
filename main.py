@@ -88,12 +88,20 @@ def set_nodes(jdata):
     if nodes:
         for i in top_hosts:
             if i[0] in list(nodes.keys()):
-                if nodes[i[0]] == 'on' and top_status[i[0]] != 'on':
-                    nu.wakeup(i[1])
-                elif nodes[i[0]] == 'off' and top_status[i[0]] != 'off':
-                    nu.shutdown(i[2])
+                if nodes[i[0]] == 'on':
+                    if top_status[i[0]] != 'on':
+                        nu.wakeup(i[1])
+                    else:
+                        ret[i[0]] = 'already_on'
+                elif nodes[i[0]] == 'off':
+                    if top_status[i[0]] != 'off':
+                        nu.shutdown(i[2])
+                    else:
+                        ret[i[0]] = 'already_off'
         m.check_nodes()
-        return get_nodes({'nodes': list(nodes.keys())})
+        data = get_nodes({'nodes': list(nodes.keys())})
+        data['nodes'].update(ret)
+        return data
     else:
         return {'status': '789: node dict not found'}
 
