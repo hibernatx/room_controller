@@ -6,10 +6,10 @@ import socket
 from sqli_connector.sqli_connector import Db as db
 import net_utils.net_utils as nu
 
-SERVER_ADDRESS = "127.0.0.1"
-SERVER_PORT = 12345
+SERVER_ADDRESS = "0.0.0.0"
+SERVER_PORT = 443
 POLL_INTERVAL = 60  # polling interval in seconds
-
+print('listening on: ', SERVER_ADDRESS, " Port: ", SERVER_PORT)
 deviceID = "virt_node_1"
 # status = {'A1': 'on', 'A2': 'off', 'B1': 'off', 'B2': 'on'}
 top_status = {}
@@ -69,7 +69,7 @@ def do_conn(conn, addr):
 def get_nodes(jdata):
     if nodes := jdata.get('nodes'):
         if nodes == '*':
-            return top_status
+            return { 'nodes' : top_status }
         else:
             ret = {}
             for i in nodes:
