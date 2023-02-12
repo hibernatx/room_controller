@@ -107,22 +107,31 @@ def set_nodes(jdata):
 
 
 def add_node(jdata):
+    global top_hosts
     try:
-        return {'status': host_db.add_host(jdata['node_id'], jdata['hostname'], jdata['mac_address'])}
+        x =  {'status': host_db.add_host(jdata['node_id'], jdata['hostname'], jdata['mac_address'])}
+        top_hosts = host_db.get_hosts()
+        return x
     except json.decoder.JSONDecodeError:
         return {'status': '789: required fields not found'}
 
 
 def update_node(jdata):
+    global top_hosts
     try:
-        return {'status': host_db.update_host(jdata['node_id'], jdata.get('hostname'), jdata.get('mac_address'))}
+        x =  {'status': host_db.update_host(jdata['node_id'], jdata.get('hostname'), jdata.get('mac_address'))}
+        top_hosts = host_db.get_hosts()
+        return x
     except json.decoder.JSONDecodeError:
         return {'status': '789: required fields not found'}
 
 
 def remove_node(jdata):
+    global top_hosts
     try:
-        return {'status': host_db.remove_host(jdata['node_id'])}
+        x = {'status': host_db.remove_host(jdata['node_id'])}
+        top_hosts = host_db.get_hosts()
+        return x
     except json.decoder.JSONDecodeError:
         return {'status': '789: required fields not found'}
 

@@ -4,7 +4,7 @@ import socket
 
 
 def wakeup(mac):
-    #wakeonlan.send_magic_packet(mac)
+    wakeonlan.send_magic_packet(mac)
     print('waking up: '+mac)
 
 
@@ -13,7 +13,8 @@ def check_alive(hostnames):
         host.is_alive for host in icmplib.multiping(
             [socket.gethostbyname(i) for i in hostnames],
             count=1,
-            privileged=False)
+            privileged=False,
+            timeout=0.5)
     ]
 
 
