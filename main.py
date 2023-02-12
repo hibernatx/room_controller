@@ -7,13 +7,13 @@ from sqli_connector.sqli_connector import Db as db
 import net_utils.net_utils as nu
 
 SERVER_ADDRESS = "0.0.0.0"
-SERVER_PORT = 443
+SERVER_PORT = 1234
 POLL_INTERVAL = 60  # polling interval in seconds
 print('listening on: ', SERVER_ADDRESS, " Port: ", SERVER_PORT)
-deviceID = "virt_node_1"
-# status = {'A1': 'on', 'A2': 'off', 'B1': 'off', 'B2': 'on'}
+deviceID = "59-3229"
+#status = {'A1': 'on', 'A2': 'off', 'B1': 'off', 'B2': 'on'}
 top_status = {}
-
+fake_status = {'59-3229-2' : 'off'}
 host_db = db('hosts.db')
 
 top_hosts = host_db.get_hosts()
@@ -68,8 +68,14 @@ def do_conn(conn, addr):
 
 def get_nodes(jdata):
     if nodes := jdata.get('nodes'):
-        if nodes == '*':
-            return { 'nodes' : top_status }
+        if nodes == 'fake':
+            return {'nodes' : fake_status }
+        
+        elif nodes == '*':
+            r = {}
+            r.update(fake_status)
+            r.update(top_status)
+            return { 'nodes' : r }
         else:
             ret = {}
             for i in nodes:
@@ -83,11 +89,28 @@ def get_nodes(jdata):
 
 
 def set_nodes(jdata):
+    global top_hosts
     ret = {}
     nodes = jdata.get('nodes')
     if nodes:
+        for i in nodes.keys():
+            if i in list(fake_status.keys()):
+                if fake_status[i] == 'off':
+                    if nodes[i] == 'on':
+                        ret[i] = 'on'
+                        fake_status[i] == 'on'
+                    else:
+                        ret[i] = 'already_on'
+                elif fake_status['A0'] == 'on':
+                    if nodes[i] == 'off':
+                        ret[i] = 'off'
+                        fake_status[i] = 'off'
+                    else:
+                        ret[i] = 'already_off'
+                        
+        
         for i in top_hosts:
-            if i[0] in list(nodes.keys()):
+            if i[0] in nodes.keys():
                 if nodes[i[0]] == 'on':
                     if top_status[i[0]] != 'on':
                         nu.wakeup(i[1])
@@ -107,28 +130,39 @@ def set_nodes(jdata):
 
 
 def add_node(jdata):
+    global top_hosts
     try:
-        return {'status': host_db.add_host(jdata['node_id'], jdata['hostname'], jdata['mac_address'])}
+        x =  {'status': host_db.add_host(jdata['node_id'], jdata['hostname'], jdata['mac_address'])}
+        top_hosts = host_db.get_hosts()
+        return x
     except json.decoder.JSONDecodeError:
         return {'status': '789: required fields not found'}
 
 
 def update_node(jdata):
+    global top_hosts
     try:
-        return {'status': host_db.update_host(jdata['node_id'], jdata.get('hostname'), jdata.get('mac_address'))}
+        print(str(jdata.get("hostname")))
+        print(str(jdata.get("mac_address")))
+        x =  {'status': host_db.update_host(jdata['node_id'], jdata.get("hostname"), jdata.get("mac_address"))}
+        top_hosts = host_db.get_hosts()
+        return x
     except json.decoder.JSONDecodeError:
         return {'status': '789: required fields not found'}
 
 
 def remove_node(jdata):
+    global top_hosts
     try:
-        return {'status': host_db.remove_host(jdata['node_id'])}
+        x = {'status': host_db.remove_host(jdata['node_id'])}
+        top_hosts = host_db.get_hosts()
+        return x
     except json.decoder.JSONDecodeError:
         return {'status': '789: required fields not found'}
 
 
-functable = {'get': get_nodes, 'set': set_nodes, 'add_node': add_node, 'update_node': update_node,
-             'remove_node': remove_node}
+functable = {'Get': get_nodes, 'Set': set_nodes, 'AddNode': add_node, 'UpdateNode': update_node,
+             'RemoveNode': remove_node}
 
 print('started')
 m = Monitor(top_status, top_hosts)

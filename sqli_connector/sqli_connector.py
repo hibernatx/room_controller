@@ -45,14 +45,14 @@ class Db:
 
     def update_host(self, node_id, hostname=None, mac_address=None):
         if hostname and mac_address:
-            query = "UPDATE hosts SET hostname = ?, mac_addr = ?"
-            self.__exec_sql(query, [hostname, mac_address])
-        elif mac_address:
-            query = "UPDATE hosts SET mac_addr = ?"
-            self.__exec_sql(query, [mac_address])
-        elif hostname:
-            query = "UPDATE hosts SET hostname = ?"
-            self.__exec_sql(query, [hostname])
+            query = "UPDATE hosts SET  mac_addr = ?,hostname = ? WHERE node_id = ?"
+            print(self.__exec_sql(query, [ mac_address, hostname,node_id]))
+        if mac_address:
+            query = "UPDATE hosts SET mac_addr = ? WHERE node_id = ?"
+            print(self.__exec_sql(query, [mac_address,node_id]))
+        if hostname:
+            query = "UPDATE hosts SET hostname = ? WHERE node_id = ?"
+            print(self.__exec_sql(query, [hostname,node_id]))
         return 'ok'
 
     def __del__(self):
